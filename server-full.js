@@ -77,18 +77,39 @@ app.get('/data/stats', function (req, res) {
 		const collection = db.collection('feeling');
 		collection.find({}).toArray((err, feelings) => {
 			if (err) {
-				cl('Cannot get you a list of ', err)
+				cl('Cannot get feelings list of ', err)
 				res.json(404, { error: 'not found' })
 			} else {
-				cl("Returning list of " + feelings.length);
 				//returning -4 h food timestamp 
-				let foodTimestamps = feelings.map(function(feeling){
-					return moment(feeling.time).subtract(4,'hours');
+				let feelingTimestampsMinus4 = feelings.map(function (feeling) {
+					return moment(feeling.time).subtract(4, 'hours');
 
 				});
-				cl('foodTimestamps',foodTimestamps);
-				
-				res.json(feelings);
+				// cl('feelingTimestampsMinus4', ...feelingTimestampsMinus4);
+				const foodCollection = db.collection('food');
+				foodCollection.find({}).toArray((err, foods) => {
+					if (err) {
+						cl('Cannot get food list ', err)
+						res.json(404, { error: 'not found' })
+					} else {
+						cl('foods:', foods);
+						let matchingFoods = foods.filter(function (food) {
+							let isMatchingFood = feelingTimestampsMinus4.find(function (timestamp) {
+								let foodTimestamp = moment(food.time);
+								let diff = Math.abs(timestamp.diff(foodTimestamp, 'minutes'));
+								return diff < 60;
+							});
+							if (isMatchingFood !== undefined) {
+								return true;
+							} else {
+								return false;
+							}
+
+						});
+						cl('matchingFoods', matchingFoods);
+						res.json(matchingFoods)
+					}
+				});
 			}
 
 			db.close();
