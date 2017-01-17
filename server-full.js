@@ -81,10 +81,11 @@ app.get('/data/stats', function (req, res) {
 				res.json(404, { error: 'not found' })
 			} else {
 				//returning -4 h food timestamp 
-				let feelingTimestampsMinus4 = feelings.map(function (feeling) {
-					return moment(feeling.time).subtract(4, 'hours');
 
-				});
+				// let feelingTimestampsMinus4 = feelings.map(function (feeling) {
+				// 	return moment(feeling.time).subtract(4, 'hours');
+
+				// });
 				// cl('feelingTimestampsMinus4', ...feelingTimestampsMinus4);
 				const foodCollection = db.collection('food');
 				foodCollection.find({}).toArray((err, foods) => {
@@ -94,17 +95,28 @@ app.get('/data/stats', function (req, res) {
 					} else {
 						cl('foods:', foods);
 						let matchingFoods = foods.filter(function (food) {
-							let isMatchingFood = feelingTimestampsMinus4.find(function (timestamp) {
+							let matchingFeeling = feelings.find(function (feeling) {
+								let feelingTimeStamp = moment(feeling.time);
 								let foodTimestamp = moment(food.time);
-								let diff = Math.abs(timestamp.diff(foodTimestamp, 'minutes'));
-								return diff < 60;
+								let diff = Math.abs(feelingTimeStamp.diff(foodTimestamp, 'minutes'));
+								return diff > 60*4 && diff < 60*9;
 							});
-							if (isMatchingFood !== undefined) {
+							if (matchingFeeling !== undefined) {
 								return true;
 							} else {
 								return false;
 							}
+						});
 
+						let resultFoods = matchingFoods.map(function (matchingFood) {
+							let matchingFeeling = feelings.find(function (feeling) {
+								let feelingTimeStamp = moment(feeling.time);
+								let foodTimestamp = moment(matchingFood.time);
+								let diff = Math.abs(feelingTimeStamp.diff(foodTimestamp, 'minutes'));
+								return diff > 60*4 && diff < 60*9;
+							});
+							matchingFood.rating = matchingFeeling.rating;
+							return matchingFood;
 						});
 						cl('matchingFoods', matchingFoods);
 						res.json(matchingFoods)
