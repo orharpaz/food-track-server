@@ -7,7 +7,8 @@
 const express = require('express'),
 	bodyParser = require('body-parser'),
 	cors = require('cors'),
-	mongodb = require('mongodb')
+	mongodb = require('mongodb'),
+	moment = require('moment')
 
 const clientSessions = require("client-sessions");
 const multer = require('multer')
@@ -69,6 +70,31 @@ function dbConnect() {
 		});
 	});
 }
+
+//GET stats
+app.get('/data/stats', function (req, res) {
+	dbConnect().then((db) => {
+		const collection = db.collection('feeling');
+		collection.find({}).toArray((err, feelings) => {
+			if (err) {
+				cl('Cannot get you a list of ', err)
+				res.json(404, { error: 'not found' })
+			} else {
+				cl("Returning list of " + feelings.length);
+				//returning -4 h food timestamp 
+				let foodTimestamps = feelings.map(function(feeling){
+					return moment(feeling.time).subtract(4,'hours');
+
+				});
+				cl('foodTimestamps',foodTimestamps);
+				
+				res.json(feelings);
+			}
+
+			db.close();
+		});
+	});
+});
 
 // GETs a list
 app.get('/data/:objType', function (req, res) {
