@@ -120,6 +120,7 @@ app.get('/data/stats', function (req, res) {
 							return matchingFood;
 						});
 						cl('matchingFoods', matchingFoods);
+						cl('resultFoods',resultFoods)
 						res.json(matchingFoods)
 					}
 				});
