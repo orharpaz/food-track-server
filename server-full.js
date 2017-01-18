@@ -133,10 +133,12 @@ app.get('/data/stats', function (req, res) {
 // GETs a list
 app.get('/data/:objType', function (req, res) {
 	const objType = req.params.objType;
+
+	console.log('Fetching for user: ', req.session.user);
 	dbConnect().then((db) => {
 		const collection = db.collection(objType);
 
-		collection.find({}).toArray((err, objs) => {
+		collection.find({userId: req.session.user._id}).toArray((err, objs) => {
 			if (err) {
 				cl('Cannot get you a list of ', err)
 				res.json(404, { error: 'not found' })
@@ -274,6 +276,8 @@ app.post('/login', function (req, res) {
 		});
 	});
 });
+
+
 
 app.get('/logout', function (req, res) {
 	req.session.reset();
