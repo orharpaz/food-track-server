@@ -77,7 +77,7 @@ function dbConnect() {
 app.get('/data/stats', function (req, res) {
 	dbConnect().then((db) => {
 		const collection = db.collection('feeling');
-		collection.find({}).toArray((err, feelings) => {
+		collection.find({userId: req.session.user._id}).toArray((err, feelings) => {
 			if (err) {
 				cl('Cannot get feelings list of ', err)
 				res.json(404, { error: 'not found' })
@@ -90,7 +90,7 @@ app.get('/data/stats', function (req, res) {
 				// });
 				// cl('feelingTimestampsMinus4', ...feelingTimestampsMinus4);
 				const foodCollection = db.collection('food');
-				foodCollection.find({}).toArray((err, foods) => {
+				foodCollection.find({userId: req.session.user._id}).toArray((err, foods) => {
 					if (err) {
 						cl('Cannot get food list ', err)
 						res.json(404, { error: 'not found' })
